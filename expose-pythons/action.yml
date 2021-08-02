@@ -25,6 +25,7 @@ runs:
           python_bin_dir="${python_location}/bin"
           python_exe="${python_bin_dir}/python"
           python_version="$("${python_exe}" -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")"
+          echo "DEBUG: [[ "${{ inputs.tox-env }}" =~ "${python_version}" ]]"
           if [[ "${{ inputs.tox-env }}" =~ "${python_version}" ]]; then
             echo "Skipping ${python_bin_dir}: $("${python_exe}" --version 2>&1)"
           else
