@@ -1,5 +1,12 @@
 name: Expose Pythons
 description: Exposes Pythons on the PATH.
+inputs:
+  skip:
+    description: |
+      Python versions to skip exposing as a space-separated string of <major>.<minor> values. For
+      example: "2.7 3.5". By default no Pythons are skipped.
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -16,11 +23,17 @@ runs:
           # N.B.: Python 2.7 prints the version to stderr so we re-direct to get output all on one
           # line in that case.
           python_bin_dir="${python_location}/bin"
-          echo "Exposing ${python_bin_dir}: $(${python_bin_dir}/python --version 2>&1)"
-          PATH="${PATH}:${python_bin_dir}"
+          python_exe="${python_bin_dir}/python"
+          python_version="$("${python_exe}" -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")"
+          if [[ "${INPUT_SKIP}" =~ "${python_version}" ]]; then
+            echo "Skipping ${python_bin_dir}: $("${python_exe}" --version 2>&1)"
+          else
+            echo "Exposing ${python_bin_dir}: $("${python_exe}" --version 2>&1)"
+            PATH="${PATH}:${python_bin_dir}"
 
-          python_lib_dir="${python_location}/lib"
-          LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${python_lib_dir}"
+            python_lib_dir="${python_location}/lib"
+            LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${python_lib_dir}"
+          fi
         done
         echo "::endgroup::"
 
