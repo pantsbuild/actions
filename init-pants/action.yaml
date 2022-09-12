@@ -52,8 +52,9 @@ runs:
       with:
         path: |
           ~/.cache/pants/named_caches
-        key: pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ inputs.named-caches-hash }}
+        key: pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ filesHash('pants.toml') }}-${{ inputs.named-caches-hash }}
         restore-keys: |
+          pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ filesHash('pants.toml') }}-
           pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-
 
     # Looking up the commit allows us to use the cache
