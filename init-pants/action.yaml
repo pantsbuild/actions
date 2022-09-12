@@ -1,0 +1,98 @@
+---
+name: Initialize Pantsbuild Environment
+description: |
+  Install pants and its dependencies and prepare pants caches.
+
+inputs:
+  pants-python-version:
+    required: false
+    default: '3.9'
+  base-branch:
+    required: false
+    default: main
+  gha-cache-key:
+    required: true
+    # use this for matrix.python-version or similar
+  pants-ci-config:
+    required: false
+    default: pants.ci.toml
+    # set to empty string to disable
+
+runs:
+  using: "composite"
+  steps:
+    - name: 'Set up Python for Pants (${{ inputs.pants-python-version }})'
+      uses: actions/setup-python@v2
+      with:
+        python-version: '${{ inputs.pants-python-version }}'
+
+    - name: Get Pants version
+      id: pants_version
+      shell: bash
+      run: |
+        # Capture the "pants_version = " line from config.
+        PANTS_VERSION=$(grep -r '^pants_version\s*=' pants.toml)
+        echo "::set-output name=pants_version::$PANTS_VERSION"
+
+    - name: Cache Pants Setup (${{ steps.pants_version.outputs.pants_version }}-py${{ inputs.pants-python-version }})
+      id: cache-pants-setup
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pants/setup
+        key: pants-setup-${{ runner.os }}-${{ steps.pants_version.outputs.pants_version }}-py${{ inputs.pants-python-version }}
+
+    # Looking up the commit allows us to use the cache
+    # from the latest commit on the base branch.
+    - name: Get Pants Cache Commit (base branch commit to pull cache from)
+      id: pants-cache-commit
+      shell: bash
+      # we could use this, but only if fetch-depth goes back far enough
+      # COMMIT=$(git merge-base ${GITHUB_BASE_REF:-${{ inputs.base-branch }}} HEAD | head -n1)
+      run: |
+        CACHECOMMIT=$(
+          gh api -H "Accept: application/vnd.github+json" \
+          '/repos/${{ github.repository }}/commits?per_page=1&sha=${{ inputs.base-branch }}' \
+          -q '.[].sha'
+        )
+        echo "::set-output name=CACHECOMMIT::${CACHECOMMIT}"
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Cache Pants Named Caches (${{ inputs.gha-cache-key }})
+      uses: actions/cache@v2
+      id: cache-pants-named-caches
+      with:
+        path: |
+          ~/.cache/pants/named_caches
+        key: pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ github.sha }}
+        restore-keys: |
+          pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ steps.pants-cache-commit.outputs.CACHECOMMIT }}
+          pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-
+
+    # TODO: handle projects that use remote caching
+    # see https://www.pantsbuild.org/docs/remote-caching
+    - name: Cache Pants LMDB Store (${{ inputs.gha-cache-key }})
+      uses: actions/cache@v2
+      id: cache-pants-lmdb-store
+      with:
+        path: |
+          ~/.cache/pants/lmdb_store
+        key: pants-lmdb-store-${{ runner.os }}-pants-${{ inputs.gha-cache-key }}-${{ github.sha }}
+        restore-keys: |
+          pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ steps.pants-cache-commit.outputs.CACHECOMMIT }}
+          pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-
+
+    # Adding env vars to ${GITHUB_ENV} makes the vars show up for all subsequent steps
+    # in the workflow (in the workflow that uses this composite action).
+    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
+    - name: Tell pants to use CI config
+      if: ${{ inputs.pants-ci-config != '' }}
+      shell: bash
+      run: |
+        echo "PANTS_CONFIG_FILES=${{ inputs.pants-ci-config }}" >> ${GITHUB_ENV}
+
+    - name: Bootstrap Pants
+      shell: bash
+      run: |
+        ./pants --version
