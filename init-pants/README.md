@@ -37,7 +37,7 @@ https://www.pantsbuild.org/docs/using-pants-in-ci#configuring-pants-for-ci-pants
 
 ## Secrets
 
-This action does not use any secrets at this point. It might need some once it stops projects that use remote caching.
+This action does not use any secrets at this point. It might need some once it supports projects that use remote caching.
 
 ## Environment variables
 

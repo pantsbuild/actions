@@ -84,7 +84,7 @@ runs:
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-
 
     # Adding env vars to ${GITHUB_ENV} makes the vars show up for all subsequent steps
-    # in the workflow (in the workflow that uses this composite action).
+    # in the workflow that uses this composite action.
     # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
     - name: Tell pants to use CI config
       if: ${{ inputs.pants-ci-config != '' }}
