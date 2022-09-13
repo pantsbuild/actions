@@ -41,8 +41,10 @@ or to bust the cache, discarding old versions of the cached pants metadata.
 Pants keeps pip and pex caches in the named caches, so they need to be invalidated
 when transitive dependencies change. The `named-caches-hash` should use the
 `hashFiles()` function to create a hash of the relevant files. We recommend using
-lockfiles for this, but you can also hash `requirements.txt` and any `BUILD` files that
-define other dependencies. For example: `${{ hashFiles('lockfiles/*.json') }}`
+lockfiles for this, because named caches are primarily used today for the results of
+resolving lockfiles. If you aren't using lockfiles, you can also hash
+`requirements.txt` and any `BUILD` files that define other dependencies.
+For example: `${{ hashFiles('lockfiles/*.json') }}`
 
 ### Optional input arguments
 
