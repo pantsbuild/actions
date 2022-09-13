@@ -2,13 +2,10 @@
 
 GitHub Action that installs pants and prepares the pants caches.
 
-Currently, this action only supports storing the pants caches in the GHA cache.
-Eventually, this should become configurable to support projects that use remote caching.
-
 This action manages three GHA caches:
 1. The pants `setup` cache.
 2. The pants `named_caches` cache.
-3. The pants `lmdb_store` cache.
+3. The pants `lmdb_store` cache (optional).
 
 Several input parameters are used to generate the GHA cache keys for each of these.
 
@@ -16,7 +13,7 @@ Several input parameters are used to generate the GHA cache keys for each of the
    `pants-python-version` and the `pants_version` extracted from `pants.toml`.
 2. The `named_caches` cache key uses:
    `gha-cache-key` and `named-caches-hash`.
-3. The `lmdb_store` cache key uses:
+3. The `lmdb_store` cache key uses (if enabled):
    `gha-cache-key` and the SHA of the current commit or the latest commit from the `base-branch`.
 
 We use the latest base commit for the `lmdb_store` so that for pull requests,
@@ -59,6 +56,14 @@ Defaults to `pants.ci.toml`.
 For more about this var and the file naming convention, see:
 https://www.pantsbuild.org/docs/using-pants-in-ci#configuring-pants-for-ci-pantscitoml-optional
 
+`cache-lmdb-store`: Pass the string `'true'` to enable caching pants' lmdb store in
+a GHA cache. By default, this action does NOT cache the `lmdb_store`.
+This is a very coarse cache that can grow unbounded. So, it is very likely to hit
+GitHub's 10GB per repo max for action caches. If you enable this, you need another
+process or workflow to manage discarding older GHA caches, or minimizing the cache size
+as described in the [docs](https://www.pantsbuild.org/docs/using-pants-in-ci).
+Use the default if using [remote caching](https://www.pantsbuild.org/docs/remote-caching).
+
 ## Secrets
 
 This action does not use any secrets at this point. It might need some once it supports projects that use remote caching.
@@ -78,5 +83,5 @@ An example of how to use this action in a workflow:
         with:
           # cache0 makes it easy to bust the cache if needed
           gha-cache-key: cache0-py${{ matrix.python_version }}
-	  named-caches-hash: ${{ hashFiles('lockfiles/*.json', '**/something-else.lock') }}
+          named-caches-hash: ${{ hashFiles('lockfiles/*.json', '**/something-else.lock') }}
 ```

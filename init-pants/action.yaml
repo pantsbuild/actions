@@ -21,6 +21,9 @@ inputs:
     required: false
     default: pants.ci.toml
     # set to empty string to disable
+  cache-lmdb-store:
+    required: false
+    default: 'false' # a string!
 
 runs:
   using: "composite"
@@ -74,14 +77,18 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
 
-    # TODO: handle projects that use remote caching
-    # see https://www.pantsbuild.org/docs/remote-caching
     - name: Cache Pants LMDB Store (${{ inputs.gha-cache-key }})
+      if: ${{ inputs.cache-lmdb-store == 'true' }}
       uses: actions/cache@v2
       id: cache-pants-lmdb-store
       with:
         path: |
           ~/.cache/pants/lmdb_store
+        # If you're not using a fine-grained remote caching service (see https://www.pantsbuild.org/docs/remote-caching),
+        # then you may also want to preserve the local Pants cache (lmdb_store). However this must invalidate for
+        # changes to any file that can affect the build, so may not be practical in larger repos.
+        # The commit SHA serves as a hash of all files in the repo.
+        # A remote cache service integrates with Pants's fine-grained invalidation and avoids these problems.
         key: pants-lmdb-store-${{ runner.os }}-pants-${{ inputs.gha-cache-key }}-${{ github.sha }}
         restore-keys: |
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ steps.pants-cache-commit.outputs.CACHECOMMIT }}
