@@ -1,6 +1,6 @@
 # Pants Github Actions
 
-This repository houses actions used by the panstbuild projects. Other use is not discouraged, but
+This repository houses actions used by the pantsbuild projects. Other use is not discouraged, but
 it's also not actively supported at this time.
 
 When adding a new action, just claim a meaningful top-level directory name to house it and then
