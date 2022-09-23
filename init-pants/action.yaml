@@ -41,13 +41,16 @@ runs:
         PANTS_VERSION=$(grep -r '^pants_version\s*=' pants.toml)
         echo "::set-output name=pants_version::$PANTS_VERSION"
 
+        PYTHON_VERSION=$(which python)
+        echo "::set-output name=python_version::$PYTHON_VERSION"
+
     - name: Cache Pants Setup (${{ steps.pants_version.outputs.pants_version }}-py${{ inputs.pants-python-version }})
       id: cache-pants-setup
       uses: actions/cache@v2
       with:
         path: |
           ~/.cache/pants/setup
-        key: pants-setup-${{ runner.os }}-${{ steps.pants_version.outputs.pants_version }}-py${{ inputs.pants-python-version }}
+        key: pants-setup-${{ runner.os }}-${{ steps.pants_version.outputs.pants_version }}-py${{ steps.pants_version.outputs.python_version }}
 
     - name: Cache Pants Named Caches (${{ inputs.gha-cache-key }})
       uses: actions/cache@v2
