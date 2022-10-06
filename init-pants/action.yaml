@@ -68,6 +68,7 @@ runs:
     # from the latest commit on the base branch.
     - name: Get Pants Cache Commit (base branch commit to pull cache from)
       id: pants-cache-commit
+      if: ${{ inputs.cache-lmdb-store == 'true' }}
       shell: bash
       # we could use this, but only if fetch-depth goes back far enough
       # COMMIT=$(git merge-base ${GITHUB_BASE_REF:-${{ inputs.base-branch }}} HEAD | head -n1)
