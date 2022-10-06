@@ -37,7 +37,7 @@ runs:
       id: pants_version
       shell: bash
       run: |
-        if ! grep 'PANTS_BOOTSTRAP_TOOLS' ./pants; then
+        if ! grep 'PANTS_BOOTSTRAP_TOOLS' ./pants > /dev/null; then
             echo "This action requires a newer ./pants script. Please update following https://www.pantsbuild.org/docs/installation"
             exit 1
         fi
