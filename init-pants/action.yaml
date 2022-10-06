@@ -33,24 +33,25 @@ runs:
       with:
         python-version: '${{ inputs.pants-python-version }}'
 
-    - name: Get Pants version
+    - name: Get Pants bootstrap cache key
       id: pants_version
       shell: bash
       run: |
-        # Capture the "pants_version = " line from config.
-        PANTS_VERSION=$(grep -r '^pants_version\s*=' pants.toml)
-        echo "::set-output name=pants_version::$PANTS_VERSION"
+        if ! grep 'PANTS_BOOTSTRAP_TOOLS' ./pants; then
+            echo "This action requires a newer ./pants script. Please update following https://www.pantsbuild.org/docs/installation"
+            exit 1
+        fi
 
-        PYTHON_VERSION=$(which python)
-        echo "::set-output name=python_version::$PYTHON_VERSION"
+        PANTS_BOOTSTRAP_CACHE_KEY=$(PANTS_BOOTSTRAP_TOOLS=1 ./pants bootstrap-cache-key)
+        echo "::set-output name=pants_bootstrap_cache_key::$PANTS_BOOTSTRAP_CACHE_KEY"
 
-    - name: Cache Pants Setup (${{ steps.pants_version.outputs.pants_version }}-py${{ inputs.pants-python-version }})
+    - name: Cache Pants Setup
       id: cache-pants-setup
       uses: actions/cache@v2
       with:
         path: |
           ~/.cache/pants/setup
-        key: pants-setup-${{ runner.os }}-${{ steps.pants_version.outputs.pants_version }}-py${{ steps.pants_version.outputs.python_version }}
+        key: pants-setup-${{ steps.pants_version.outputs.pants_bootstrap_cache_key }}
 
     - name: Cache Pants Named Caches (${{ inputs.gha-cache-key }})
       uses: actions/cache@v2
