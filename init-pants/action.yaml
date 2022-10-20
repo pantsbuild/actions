@@ -43,7 +43,7 @@ runs:
         fi
 
         PANTS_BOOTSTRAP_CACHE_KEY=$(PANTS_BOOTSTRAP_TOOLS=1 ./pants bootstrap-cache-key)
-        echo "::set-output name=pants_bootstrap_cache_key::$PANTS_BOOTSTRAP_CACHE_KEY"
+        echo "pants_bootstrap_cache_key=$PANTS_BOOTSTRAP_CACHE_KEY" >> $GITHUB_OUTPUT
 
     - name: Cache Pants Setup
       id: cache-pants-setup
@@ -78,7 +78,7 @@ runs:
           '/repos/${{ github.repository }}/commits?per_page=1&sha=${{ inputs.base-branch }}' \
           -q '.[].sha'
         )
-        echo "::set-output name=CACHECOMMIT::${CACHECOMMIT}"
+        echo "CACHECOMMIT=${CACHECOMMIT}" >> $GITHUB_OUTPUT
       env:
         GH_TOKEN: ${{ github.token }}
 
