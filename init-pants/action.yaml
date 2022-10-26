@@ -29,7 +29,7 @@ runs:
   using: "composite"
   steps:
     - name: 'Set up Python for Pants (${{ inputs.pants-python-version }})'
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '${{ inputs.pants-python-version }}'
 
@@ -47,14 +47,14 @@ runs:
 
     - name: Cache Pants Setup
       id: cache-pants-setup
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cache/pants/setup
         key: pants-setup-${{ steps.pants_version.outputs.pants_bootstrap_cache_key }}
 
     - name: Cache Pants Named Caches (${{ inputs.gha-cache-key }})
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache-pants-named-caches
       with:
         path: |
@@ -84,7 +84,7 @@ runs:
 
     - name: Cache Pants LMDB Store (${{ inputs.gha-cache-key }})
       if: ${{ inputs.cache-lmdb-store == 'true' }}
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache-pants-lmdb-store
       with:
         path: |
