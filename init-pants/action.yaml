@@ -105,8 +105,14 @@ runs:
     - name: Tell pants to use CI config
       if: ${{ inputs.pants-ci-config != '' }}
       shell: bash
+      env:
+        PANTS_CONFIG_FILES: ${{ inputs.pants-ci-config }}
       run: |
-        echo "PANTS_CONFIG_FILES=${{ inputs.pants-ci-config }}" >> ${GITHUB_ENV}
+        if [ -f ${PANTS_CONFIG_FILES} ]; then
+          echo "PANTS_CONFIG_FILES=${PANTS_CONFIG_FILES}" >> ${GITHUB_ENV}
+        else
+          echo "${PANTS_CONFIG_FILES} does not exist"
+        fi
 
     - name: Bootstrap Pants
       shell: bash
