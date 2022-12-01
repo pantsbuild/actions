@@ -108,7 +108,9 @@ runs:
       env:
         PANTS_CONFIG_FILES: ${{ inputs.pants-ci-config }}
       run: |
-        if [ -f ${PANTS_CONFIG_FILES} ]; then
+        if [ -f ${PANTS_CONFIG_FILES} ] || [ "${PANTS_CONFIG_FILES}" != "pants.ci.toml" ]; then
+          # either the default pants.ci.toml exists,
+          # or we are not using the default, which might use the list syntax +['...']
           echo "PANTS_CONFIG_FILES=${PANTS_CONFIG_FILES}" >> ${GITHUB_ENV}
         else
           echo "${PANTS_CONFIG_FILES} does not exist"
