@@ -89,7 +89,7 @@ runs:
         # changes to any file that can affect the build, so may not be practical in larger repos.
         # The commit SHA serves as a hash of all files in the repo.
         # A remote cache service integrates with Pants's fine-grained invalidation and avoids these problems.
-        key: pants-lmdb-store-${{ runner.os }}-pants-${{ inputs.gha-cache-key }}-${{ github.sha }}
+        key: pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ github.sha }}
         restore-keys: |
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ steps.pants-cache-commit.outputs.CACHECOMMIT }}
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-
