@@ -63,9 +63,9 @@ runs:
       run: |
         PANTS_BOOTSTRAP_CACHE_KEY=$(PANTS_BOOTSTRAP_TOOLS=2 pants bootstrap-cache-key)
         if [[ "$OSTYPE" == "darwin"* ]]; then
-          PANTS_BOOTSTRAP_CACHE_DIR="~/Library/Caches/nce"
+          PANTS_BOOTSTRAP_CACHE_DIR="$HOME/Library/Caches/nce"
         else
-          PANTS_BOOTSTRAP_CACHE_DIR="~/.cache/nce"
+          PANTS_BOOTSTRAP_CACHE_DIR="$HOME/.cache/nce"
         fi
         echo "pants_bootstrap_cache_key=$PANTS_BOOTSTRAP_CACHE_KEY" >> $GITHUB_OUTPUT
         echo "pants_bootstrap_cache_dir=$PANTS_BOOTSTRAP_CACHE_DIR" >> $GITHUB_OUTPUT
