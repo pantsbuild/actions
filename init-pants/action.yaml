@@ -54,7 +54,7 @@ runs:
           curl --proto '=https' --tlsv1.2 -fsSLO \
             https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
           ./get-pants.sh
-          echo "~/bin" >> $GITHUB_PATH
+          echo "$HOME/bin" >> $GITHUB_PATH
         fi
 
     - name: Get the Pants bootstrap cache info
