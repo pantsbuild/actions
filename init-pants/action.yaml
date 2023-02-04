@@ -3,11 +3,16 @@ name: Initialize Pants
 description: |
   Install Pants and its dependencies and prepare its caches.
 
+  If a `pants` launcher binary exists on the $PATH, it will be used. Otherwise, if
+  a `get-pants.sh` script exists in the repo root, it will be invoked to download the
+  launcher binary to ~/bin, which will be placed on the $PATH. Otherwise, the `get-pants.sh`
+  script will be downloaded first and then invoked as above.
+
 inputs:
   # Note: inputs are always string typed.
   setup-commit:
     description: |
-      Run the get-pants.sh script version at this commit in the pantsbuild/setup repo.
+      Run the get-pants.sh script version from this commit in the pantsbuild/setup repo.
       Picking a specific commit is safer than downloading the current version.
     required: false
     # When we update get-pants.sh, we should update this commit.
@@ -43,6 +48,16 @@ inputs:
       avoids these problems.
     required: false
     default: 'false' # a string!
+  setup-python-for-plugins:
+    description: |
+      If set to 'true', this action will set up a Python interpreter suitable for testing/linting
+      custom Pants plugin code in your repo.  Pants plugins will run on the interpreter embedded
+      in Pants, and so much be tested/linted on an interpreter of the same version (currently 3.9).
+      This may be different than the interpreter version(s) your other Python code requires.
+      So this convenience option streamlines installing an interpreter specifically for
+      testing/linting plugin code.
+    required: false
+    default: 'false' # a string!
 
 runs:
   using: "composite"
@@ -51,11 +66,19 @@ runs:
       shell: bash
       run: |
         if ! command -v pants; then
-          curl --proto '=https' --tlsv1.2 -fsSLO \
-            https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
+          if [[ ! -f ./get-pants.sh ]]; then
+            curl --proto '=https' --tlsv1.2 -fsSLO \
+              https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
+          fi
           ./get-pants.sh
           echo "$HOME/bin" >> $GITHUB_PATH
         fi
+
+    - name: Setup interpreter for testing in-repo Pants plugins
+      if: ${{ inputs.setup-python-for-plugins == 'true' }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
     - name: Get the Pants bootstrap cache info
       id: pants_bootstrap_cache
