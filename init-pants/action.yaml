@@ -52,7 +52,7 @@ inputs:
     description: |
       If set to 'true', this action will set up a Python interpreter suitable for testing/linting
       custom Pants plugin code in your repo.  Pants plugins will run on the interpreter embedded
-      in Pants, and so much be tested/linted on an interpreter of the same version (currently 3.9).
+      in Pants, and so must be tested/linted on an interpreter of the same version (currently 3.9).
       This may be different than the interpreter version(s) your other Python code requires.
       So this convenience option streamlines installing an interpreter specifically for
       testing/linting plugin code.
