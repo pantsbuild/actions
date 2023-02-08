@@ -69,6 +69,7 @@ runs:
           if [[ ! -f ./get-pants.sh ]]; then
             curl --proto '=https' --tlsv1.2 -fsSLO \
               https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
+            chmod +x ./get-pants.sh
           fi
           ./get-pants.sh
           echo "$HOME/bin" >> $GITHUB_PATH
