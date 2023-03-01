@@ -66,12 +66,14 @@ runs:
       shell: bash
       run: |
         if ! command -v pants; then
-          if [[ ! -f ./get-pants.sh ]]; then
-            curl --proto '=https' --tlsv1.2 -fsSLO \
+          if [[ -f ./get-pants.sh ]]; then
+            ./get-pants.sh
+          else
+            curl --proto '=https' --tlsv1.2 -fsSLo /tmp/get-pants.sh \
               https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
-            chmod +x ./get-pants.sh
+            chmod +x /tmp/get-pants.sh
+            /tmp/get-pants.sh
           fi
-          ./get-pants.sh
           echo "$HOME/bin" >> $GITHUB_PATH
         fi
 
