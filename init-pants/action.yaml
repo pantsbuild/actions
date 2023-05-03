@@ -85,6 +85,7 @@ runs:
       shell: bash
       run: |
         if ! command -v pants; then
+          echo "$HOME/bin" >> $GITHUB_PATH
           if [[ -f ./get-pants.sh ]]; then
             ./get-pants.sh
           else
