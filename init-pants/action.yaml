@@ -90,7 +90,7 @@ runs:
         fi
 
     - name: Setup interpreter for testing in-repo Pants plugins
-      if: ${{ inputs.setup-python-for-plugins == 'true' }}
+      if: inputs.setup-python-for-plugins == 'true'
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
@@ -128,7 +128,7 @@ runs:
     # Looking up the commit allows us to use the cache from the latest commit on the base branch.
     - name: Get Pants Cache Commit (base branch commit to pull cache from)
       id: pants_cache_commit
-      if: ${{ inputs.cache-lmdb-store == 'true' }}
+      if: inputs.cache-lmdb-store == 'true'
       shell: bash
       # we could use this, but only if fetch-depth goes back far enough
       # COMMIT=$(git merge-base ${GITHUB_BASE_REF:-${{ inputs.base-branch }}} HEAD | head -n1)
@@ -139,11 +139,9 @@ runs:
           -q '.[].sha'
         )
         echo "CACHECOMMIT=${CACHECOMMIT}" >> $GITHUB_OUTPUT
-      env:
-        GH_TOKEN: ${{ github.token }}
 
     - name: Cache Pants LMDB store
-      if: ${{ inputs.cache-lmdb-store == 'true' }}
+      if: inputs.cache-lmdb-store == 'true'
       uses: actions/cache@v3
       id: cache-pants-lmdb-store
       with:
@@ -159,7 +157,7 @@ runs:
     # in the workflow that uses this composite action.
     # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
     - name: Tell pants to use CI config
-      if: ${{ inputs.pants-ci-config != '' }}
+      if: inputs.pants-ci-config != ''
       shell: bash
       env:
         PANTS_CONFIG_FILES: ${{ inputs.pants-ci-config }}
