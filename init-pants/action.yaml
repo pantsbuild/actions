@@ -70,6 +70,13 @@ inputs:
       testing/linting plugin code.
     required: false
     default: 'false' # a string!
+  gh-host:
+    description: |
+      The lmdb store can be restored from the base branch, if it exists. This option configures the
+      host that is used to determine the latest commit on the base branch. This should be configured
+      as the hostname only, no protocol (for example, https) should be included.
+    required: false
+    default: DEFAULT
 
 runs:
   using: "composite"
@@ -124,6 +131,19 @@ runs:
         restore-keys: |
           pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ hashFiles('pants.toml') }}-
           pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-
+
+    - name: Configure the gh CLI options
+      if: inputs.cache-lmdb-store == 'true'
+      shell: bash
+      # According to https://cli.github.com/manual/gh_help_environment, when GH_HOST is used to configure
+      # the hostname, the token must be named GITHUB_ENTERPRISE_TOKEN.
+      run: |
+        if [[ ${{ inputs.gh-host }} != "DEFAULT" ]]; then
+          echo "GITHUB_ENTERPRISE_TOKEN=${{ github.token }}" >> $GITHUB_ENV
+          echo "GH_HOST=${{ inputs.gh-host }}" >> $GITHUB_ENV
+        else
+          echo "GH_TOKEN=${{ github.token }}" >> $GITHUB_ENV
+        fi
 
     # Looking up the commit allows us to use the cache from the latest commit on the base branch.
     - name: Get Pants Cache Commit (base branch commit to pull cache from)
