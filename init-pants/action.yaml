@@ -74,7 +74,9 @@ inputs:
     description: |
       The lmdb store can be restored from the base branch, if it exists. This option configures the
       host that is used to determine the latest commit on the base branch. This should be configured
-      as the hostname only, no protocol (for example, https) should be included.
+      as the hostname only, no protocol (for example, https) should be included. This is useful
+      if you are using an enterprise instance of GitHub whose host is not 'https://github.com'.
+      See https://cli.github.com/manual/gh_help_environment.
     required: false
     default: DEFAULT
 
