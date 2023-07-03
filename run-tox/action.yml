@@ -1,6 +1,10 @@
 name: Run Tox
 description: Sets up tox and runs a tox environment.
 inputs:
+  python:
+    description: A custom python to use for installing tox.
+    required: false
+    default: python
   tox-env:
     description: The tox environment to execute.
     required: true
@@ -27,8 +31,8 @@ runs:
       shell: python
     - name: Install Tox
       run: |
-        python -mpip install -U pip
-        python -mpip install 'tox==${{ steps.calculate-tox-version.outputs.tox-min-version }}'
+        ${{ inputs.python }} -mpip install -U pip
+        ${{ inputs.python }} -mpip install 'tox==${{ steps.calculate-tox-version.outputs.tox-min-version }}'
       shell: bash
     - name: Execute tox -e ${{ inputs.tox-env }}
       run: |
@@ -43,5 +47,5 @@ runs:
             export ARCHFLAGS="-arch x86_64"
           fi
         fi
-        tox --skip-missing-interpreters=false -v -e ${{ inputs.tox-env }}
+        ${{ inputs.python }} -mtox --skip-missing-interpreters=false -v -e ${{ inputs.tox-env }}
       shell: bash
