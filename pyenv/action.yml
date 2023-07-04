@@ -18,7 +18,7 @@ runs:
     - name: Cache Pyenv
       uses: actions/cache@v3
       with:
-        path: ${{ inputs.pyenv-root }}
+        path: ${{ runner.tool_cache }}/pyenv_root
         key: ${{ matrix.os }}-${{ runner.arch }}-install-pyenv-${{ inputs.pyenv-version }}-${{ inputs.python-version }}-v1
     - name: Install Pyenv
       shell: bash
