@@ -8,6 +8,10 @@ inputs:
   tox-env:
     description: The tox environment to execute.
     required: true
+  path:
+    description: The path of tox.ini.
+    required: false
+    default: tox.ini
 runs:
   using: composite
   steps:
@@ -24,7 +28,7 @@ runs:
             from configparser import ConfigParser
 
         cp = ConfigParser()
-        cp.read("tox.ini")
+        cp.read("${{ inputs.path }}")
         tox_min_version = cp.get("tox", "minversion")
         with open(os.environ["GITHUB_OUTPUT"], "a") as gh_output_fp:
             print("tox-min-version={}".format(tox_min_version), file=gh_output_fp)
@@ -47,5 +51,5 @@ runs:
             export ARCHFLAGS="-arch x86_64"
           fi
         fi
-        ${{ inputs.python }} -mtox --skip-missing-interpreters=false -v -e ${{ inputs.tox-env }}
+        ${{ inputs.python }} -mtox -c ${{ inputs.path }} --skip-missing-interpreters=false -v -e ${{ inputs.tox-env }}
       shell: bash
