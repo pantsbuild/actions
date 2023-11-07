@@ -16,7 +16,7 @@ inputs:
       Picking a specific commit is safer than downloading the current version.
     required: false
     # When we update get-pants.sh, we should update this commit.
-    default: baaf73b00d1f0c0508cfbdf4987dc9caa69d85b9
+    default: 6f136713a46e555946a22ffb3ed49c372eea58df
   base-branch:
     description: |
       The fallback commit to restore the local process cache from, if no cache
@@ -87,7 +87,7 @@ runs:
       shell: bash
       run: |
         if ! command -v pants; then
-          echo "$HOME/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
           if [[ -f ./get-pants.sh ]]; then
             ./get-pants.sh
           else
