@@ -87,7 +87,6 @@ runs:
       shell: bash
       run: |
         if ! command -v pants; then
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
           if [[ -f ./get-pants.sh ]]; then
             ./get-pants.sh
           else
@@ -95,6 +94,13 @@ runs:
               https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
             chmod +x ${{ runner.temp }}/get-pants.sh
             ${{ runner.temp }}/get-pants.sh
+          fi
+          # add 'pants' is on the PATH for subsequent actions.
+          if [[ -f "$HOME/bin/pants" ]]; then
+            # The repo might have a copy of an older get-pants.sh
+            echo "$HOME/bin" >> $GITHUB_PATH
+          else
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
           fi
         fi
 
