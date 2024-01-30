@@ -125,14 +125,14 @@ runs:
 
     - name: Cache Pants setup
       id: cache-pants-setup
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ${{ steps.pants_bootstrap_cache.outputs.pants_bootstrap_cache_dir }}
         key: pants-setup-${{ steps.pants_bootstrap_cache.outputs.pants_bootstrap_cache_key }}
 
     - name: Cache Pants named caches
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ inputs.named-caches-location }}
         key: pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ hashFiles('pants.toml') }}-${{ inputs.named-caches-hash }}
@@ -163,7 +163,7 @@ runs:
 
     - name: Cache Pants LMDB store
       if: inputs.cache-lmdb-store == 'true'
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: cache-pants-lmdb-store
       with:
         path: ${{ inputs.lmdb-store-location }}
