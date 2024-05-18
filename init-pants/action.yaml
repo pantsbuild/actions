@@ -60,6 +60,14 @@ inputs:
       Default is `~/.cache/pants/lmdb_store`.
     required: false
     default: "~/.cache/pants/lmdb_store"
+  experimental-remote-cache-via-gha:
+    description: |
+      Whether to add env variables that configure the Pants remote cache to use the GHA cache
+      (esp the [GLOBAL].remote_store_address, and [GLOBAL].remote_oauth_bearer_token options).
+      You must still configure the rest of the remote cache settings for these to take effect.
+      https://www.pantsbuild.org/2.20/docs/using-pants/remote-caching-and-execution/remote-caching#github-actions-cache
+    required: false
+    default: 'false' # a string!
   setup-python-for-plugins:
     description: |
       If set to 'true', this action will set up a Python interpreter suitable for testing/linting
@@ -173,6 +181,16 @@ runs:
         restore-keys: |
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ steps.pants_cache_commit.outputs.CACHECOMMIT }}
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-
+
+    # These vars are required to use the experimental fine-grained remote caching via the GHA cache.
+    # https://www.pantsbuild.org/2.20/docs/using-pants/remote-caching-and-execution/remote-caching#workflow
+    - name: Configure Pants Remote Caching store
+      if: inputs.experimental-remote-cache-via-gha == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          core.exportVariable('PANTS_REMOTE_STORE_ADDRESS', process.env.ACTIONS_CACHE_URL);
+          core.exportVariable('PANTS_REMOTE_OAUTH_BEARER_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
     # Adding env vars to ${GITHUB_ENV} makes the vars show up for all subsequent steps
     # in the workflow that uses this composite action.

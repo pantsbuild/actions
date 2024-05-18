@@ -29,11 +29,6 @@ This action has no output.
 
 ### Required input arguments
 
-`gha-cache-key`: This is used to create the GHA cache keys for pants' `lmdb_store`
-and `named_caches`. When pulling the pants files from the GHA cache,
-this can be used to include relevant metadata (such as the python version your app is using),
-or to bust the cache, discarding old versions of the cached pants metadata.
-
 `named-caches-hash`: This is used to create the GHA cache key for pants' `named_caches`.
 Pants keeps pip and pex caches in the named caches, so they need to be invalidated
 when transitive dependencies change. The `named-caches-hash` should use the
@@ -43,18 +38,10 @@ resolving lockfiles. If you aren't using lockfiles, you can also hash
 `requirements.txt` and any `BUILD` files that define other dependencies.
 For example: `${{ hashFiles('lockfiles/*.json') }}`
 
-### Optional input arguments
-
-`pants-python-version`: Which version of python to install, specifically for pants. Defaults to `'3.9'`.
+### Optional input arguments (alphabetical order)
 
 `base-branch`: This action calculates the merge base for pull requests from this branch.
 Looking up the merge commit allows us to use the cache from the latest commit on the base branch.
-
-`pants-ci-config`: The value for the `PANTS_CONFIG_FILES` environment var.
-Set to empty to skip adding it to the environment for the rest of the workflow.
-Defaults to `pants.ci.toml`.
-For more about this var and the file naming convention, see:
-https://www.pantsbuild.org/docs/using-pants-in-ci#configuring-pants-for-ci-pantscitoml-optional
 
 `cache-lmdb-store`: Pass the string `'true'` to enable caching pants' lmdb store in
 a GHA cache. By default, this action does NOT cache the `lmdb_store`.
@@ -63,6 +50,34 @@ GitHub's 10GB per repo max for action caches. If you enable this, you need anoth
 process or workflow to manage discarding older GHA caches, or minimizing the cache size
 as described in the [docs](https://www.pantsbuild.org/docs/using-pants-in-ci).
 Use the default if using [remote caching](https://www.pantsbuild.org/docs/remote-caching).
+
+`experimental-remote-cache-via-gha`: This is used to configure the remote caching address
+and oauth token so that pants can use GHA as a fine-grained remote cache. You must also
+configure the other remote caching options in `pants.ci.toml` or similar as described in
+[remote caching](https://www.pantsbuild.org/2.20/docs/using-pants/remote-caching-and-execution/remote-caching#github-actions-cache).
+
+`gh-host`: This is used to add an enterprise GitHub host for API calls instead of `github.com`.
+
+`gha-cache-key`: This is used to create the GHA cache keys for pants' `lmdb_store`
+and `named_caches`. When pulling the pants files from the GHA cache,
+this can be used to include relevant metadata (such as the python version your app is using),
+or to bust the cache, discarding old versions of the cached pants metadata.
+
+`lmdb-store-location`: This is used to override the lmdb store cache location when the location
+has been customized in `pants.toml`.
+
+`named-caches-location`: This is used to override the named cache location when the location
+has been customized in `pants.toml`.
+
+`pants-ci-config`: The value for the `PANTS_CONFIG_FILES` environment var.
+Set to empty to skip adding it to the environment for the rest of the workflow.
+Defaults to `pants.ci.toml`.
+For more about this var and the file naming convention, see:
+https://www.pantsbuild.org/docs/using-pants-in-ci#configuring-pants-for-ci-pantscitoml-optional
+
+`setup-commit`: Which version/commit of get-pants.sh script to use when installing pants.
+
+`setup-python-for-plugins`: Ensure python is installed for linting/testing pants-plugins.
 
 ## Secrets
 
