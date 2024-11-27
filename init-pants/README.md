@@ -56,6 +56,10 @@ and oauth token so that pants can use GHA as a fine-grained remote cache. You mu
 configure the other remote caching options in `pants.ci.toml` or similar as described in
 [remote caching](https://www.pantsbuild.org/2.20/docs/using-pants/remote-caching-and-execution/remote-caching#github-actions-cache).
 
+`get-pants-version`: This is used to override the version of scie-pants
+downloaded by `get-pants.sh`. The default is the latest version. To specify a
+version set this to a release, e.g. `0.12.0`.
+
 `gh-host`: This is used to add an enterprise GitHub host for API calls instead of `github.com`.
 
 `gha-cache-key`: This is used to create the GHA cache keys for pants' `lmdb_store`
