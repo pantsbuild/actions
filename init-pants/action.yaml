@@ -17,6 +17,11 @@ inputs:
     required: false
     # When we update get-pants.sh, we should update this commit.
     default: 6f136713a46e555946a22ffb3ed49c372eea58df
+  get-pants-version:
+    description: |
+      Pass this version into `get-pants.sh --version`
+    required: false
+    default: ''
   base-branch:
     description: |
       The fallback commit to restore the local process cache from, if no cache
@@ -94,14 +99,20 @@ runs:
     - name: Ensure the Pants launcher binary
       shell: bash
       run: |
+        VERSION="${{ inputs.get-pants-version }}"
+        if [ -n "${VERSION}" ]; then
+          VERSION_FLAG="--version ${VERSION}"
+        else
+          VERSION_FLAG=""
+        fi
         if ! command -v pants; then
           if [[ -f ./get-pants.sh ]]; then
-            ./get-pants.sh
+            ./get-pants.sh $VERSION_FLAG
           else
             curl --proto '=https' --tlsv1.2 -fsSLo ${{ runner.temp }}/get-pants.sh \
               https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
             chmod +x ${{ runner.temp }}/get-pants.sh
-            ${{ runner.temp }}/get-pants.sh
+            ${{ runner.temp }}/get-pants.sh $VERSION_FLAG
           fi
           # add 'pants' is on the PATH for subsequent actions.
           if [[ -f "$HOME/bin/pants" ]]; then
