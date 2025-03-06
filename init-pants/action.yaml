@@ -77,7 +77,7 @@ inputs:
     description: |
       If set to 'true', this action will set up a Python interpreter suitable for testing/linting
       custom Pants plugin code in your repo. Pants plugins will run on the interpreter embedded
-      in Pants, and so must be tested/linted on an interpreter of the same version (currently 3.9).
+      in Pants, and so must be tested/linted on an interpreter of the same version (currently 3.11 or 3.9).
       This may be different than the interpreter version(s) your other Python code requires.
       So this convenience option streamlines installing an interpreter specifically for
       testing/linting plugin code.
@@ -122,12 +122,6 @@ runs:
             echo "$HOME/.local/bin" >> $GITHUB_PATH
           fi
         fi
-
-    - name: Setup interpreter for testing in-repo Pants plugins
-      if: inputs.setup-python-for-plugins == 'true'
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
 
     - name: Get the Pants bootstrap cache info
       id: pants_bootstrap_cache
@@ -228,3 +222,25 @@ runs:
       shell: bash
       run: |
         pants --version
+
+    - name: Select interpreter for testing in-repo Pants plugins
+      id: python_for_plugins
+      if: inputs.setup-python-for-plugins == 'true'
+      shell: bash
+      run: |
+        PANTS_VERSION=$(pants --version)
+        PANTS_VERSION_MAJOR=$(echo ${PANTS_VERSION} | cut -d. -f1)
+        PANTS_VERSION_MINOR=$(echo ${PANTS_VERSION} | cut -d. -f2)
+        if [ "${PANTS_VERSION_MAJOR}" == "2" ]; then
+          if (( "${PANTS_VERSION_MINOR}" < "25" )); then
+            echo "python_version=3.9" >> $GITHUB_OUTPUT
+          else
+            echo "python_version=3.11" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+    - name: Setup interpreter for testing in-repo Pants plugins
+      if: inputs.setup-python-for-plugins == 'true'
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ steps.python_for_plugins.outputs.python_version }}
