@@ -92,11 +92,17 @@ inputs:
       See https://cli.github.com/manual/gh_help_environment.
     required: false
     default: "github.com"
+  working-directory:
+    description: |
+      The working directory to run pants from.
+    required: false
+    default: ${{ github.workspace }}
 
 runs:
   using: "composite"
   steps:
     - name: Ensure the Pants launcher binary
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         VERSION="${{ inputs.get-pants-version }}"
@@ -125,6 +131,7 @@ runs:
 
     - name: Get the Pants bootstrap cache info
       id: pants_bootstrap_cache
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         PANTS_BOOTSTRAP_CACHE_KEY=$(PANTS_BOOTSTRAP_TOOLS=2 pants bootstrap-cache-key)
@@ -156,6 +163,7 @@ runs:
     # Looking up the commit allows us to use the cache from the latest commit on the base branch.
     - name: Get Pants Cache Commit (base branch commit to pull cache from)
       id: pants_cache_commit
+      working-directory: ${{ inputs.working-directory }}
       if: inputs.cache-lmdb-store == 'true'
       shell: bash
       # we could use this, but only if fetch-depth goes back far enough
@@ -202,6 +210,7 @@ runs:
     # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
     - name: Tell pants to use CI config
       if: inputs.pants-ci-config != ''
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       env:
         PANTS_CONFIG_FILES: ${{ inputs.pants-ci-config }}
@@ -219,6 +228,7 @@ runs:
         fi
 
     - name: Bootstrap Pants
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         pants --version
@@ -226,6 +236,7 @@ runs:
     - name: Select interpreter for testing in-repo Pants plugins
       id: python_for_plugins
       if: inputs.setup-python-for-plugins == 'true'
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         PANTS_VERSION=$(pants --version)
