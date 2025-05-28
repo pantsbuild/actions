@@ -94,7 +94,7 @@ The environment variable should be available for the remainder of the workflow t
 
 ## Usage Example
 
-Here is an example of how to use this action in a workflow. Please note that you should check whether the `v10` tag is in fact the latest tagged release of these actions, and update accordingly if it is not.
+Here is an example of how to use this action in a workflow. Please note that you should check whether the `v10` tag is in fact the latest tagged release of these actions, and update accordingly if it is not to either a more recent tag or a known-good commit on `main` (but not `main` directly!)..
 
 ```yaml
       - name: Initialize Pants
