@@ -94,11 +94,11 @@ The environment variable should be available for the remainder of the workflow t
 
 ## Usage Example
 
-An example of how to use this action in a workflow:
+Here is an example of how to use this action in a workflow. Please note that you should check whether the `v10` tag is in fact the latest tagged release of these actions, and update accordingly if it is not.
 
 ```yaml
       - name: Initialize Pants
-        uses: pantsbuild/actions/init-pants@main
+        uses: pantsbuild/actions/init-pants@v10
         with:
           # cache0 makes it easy to bust the cache if needed
           gha-cache-key: cache0-py${{ matrix.python_version }}
