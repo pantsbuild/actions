@@ -157,7 +157,7 @@ runs:
 
     - name: Cache Pants named caches
       uses: actions/cache@v4
-      if: inputs.named-caches-hash != "disable"
+      if: inputs.named-caches-hash != 'disable'
       with:
         path: ${{ inputs.named-caches-location }}
         key: pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ hashFiles('pants.toml') }}-${{ inputs.named-caches-hash }}
