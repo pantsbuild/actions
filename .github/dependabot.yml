@@ -3,6 +3,8 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
+    assignees:
+      - sureshjoshi
     directories:
       - expose-pythons
       - init-pants
@@ -14,6 +16,3 @@ updates:
           - "*"
     schedule:
       interval: "monthly"
-    target-branch: "depbot"
-    assignees:
-      - sureshjoshi
