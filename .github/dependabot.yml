@@ -6,10 +6,10 @@ updates:
     assignees:
       - sureshjoshi
     directories:
-      - expose-pythons
-      - init-pants
-      - pyenv
-      - run-tox
+      - "expose-pythons/*"
+      - "init-pants/*"
+      - "pyenv/*"
+      - "run-tox/*"
     groups:
       gha-deps:
         patterns:
