@@ -14,3 +14,6 @@ updates:
           - "*"
     schedule:
       interval: "monthly"
+    target-branch: "depbot"
+    assignees:
+      - sureshjoshi
