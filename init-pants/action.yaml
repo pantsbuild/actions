@@ -81,7 +81,8 @@ inputs:
     description: |
       If set to 'true', this action will set up a Python interpreter suitable for testing/linting
       custom Pants plugin code in your repo. Pants plugins will run on the interpreter embedded
-      in Pants, and so must be tested/linted on an interpreter of the same version (currently 3.11 or 3.9).
+      in Pants, and so must be tested/linted on an interpreter of the same version (currently 3.14, 
+      3.11, or 3.9).
       This may be different than the interpreter version(s) your other Python code requires.
       So this convenience option streamlines installing an interpreter specifically for
       testing/linting plugin code.
@@ -248,11 +249,13 @@ runs:
         PANTS_VERSION_MAJOR=$(echo ${PANTS_VERSION} | cut -d. -f1)
         PANTS_VERSION_MINOR=$(echo ${PANTS_VERSION} | cut -d. -f2)
         if [ "${PANTS_VERSION_MAJOR}" == "2" ]; then
-          if (( "${PANTS_VERSION_MINOR}" < "25" )); then
-            echo "python_version=3.9" >> $GITHUB_OUTPUT
-          else
-            echo "python_version=3.11" >> $GITHUB_OUTPUT
-          fi
+            if (( "${PANTS_VERSION_MINOR}" < "25" )); then
+                echo "python_version=3.9"
+            elif (( "${PANTS_VERSION_MINOR}" < "32" )); then
+                echo "python_version=3.11"
+            else
+                echo "python_version=3.14"
+            fi
         fi
 
     - name: Setup interpreter for testing in-repo Pants plugins
