@@ -8,6 +8,11 @@ description: |
   launcher binary to ~/bin, which will be placed on the $PATH. Otherwise, the `get-pants.sh`
   script will be downloaded first and then invoked as above.
 
+  BREAKING: This action now restores caches only. You must add
+  pantsbuild/actions/save-pants-cache with `if: always()` at the end of
+  your job to persist caches. This ensures cache saves survive workflow
+  cancellation (e.g., cancel-in-progress: true).
+
 inputs:
   # Note: inputs are always string typed.
   setup-commit:
@@ -81,7 +86,7 @@ inputs:
     description: |
       If set to 'true', this action will set up a Python interpreter suitable for testing/linting
       custom Pants plugin code in your repo. Pants plugins will run on the interpreter embedded
-      in Pants, and so must be tested/linted on an interpreter of the same version (currently 3.14, 
+      in Pants, and so must be tested/linted on an interpreter of the same version (currently 3.14,
       3.11, or 3.9).
       This may be different than the interpreter version(s) your other Python code requires.
       So this convenience option streamlines installing an interpreter specifically for
@@ -102,6 +107,32 @@ inputs:
       The working directory to run pants from.
     required: false
     default: ${{ github.workspace }}
+
+outputs:
+  setup-cache-path:
+    description: Path to the Pants setup cache directory
+    value: ${{ steps.cache_metadata.outputs.setup_cache_path }}
+  setup-cache-key:
+    description: GHA cache key for the Pants setup cache
+    value: ${{ steps.cache_metadata.outputs.setup_cache_key }}
+  named-caches-path:
+    description: Path to the Pants named caches directory
+    value: ${{ steps.cache_metadata.outputs.named_caches_path }}
+  named-caches-key:
+    description: GHA cache key for the Pants named caches
+    value: ${{ steps.cache_metadata.outputs.named_caches_key }}
+  lmdb-store-path:
+    description: Path to the Pants LMDB store directory
+    value: ${{ steps.cache_metadata.outputs.lmdb_store_path }}
+  lmdb-store-key:
+    description: GHA cache key for the Pants LMDB store
+    value: ${{ steps.cache_metadata.outputs.lmdb_store_key }}
+  cache-lmdb-store:
+    description: Whether the LMDB store cache is enabled (passthrough of the input)
+    value: ${{ inputs.cache-lmdb-store }}
+  named-caches-hash:
+    description: The named caches hash value (passthrough of the input)
+    value: ${{ inputs.named-caches-hash }}
 
 runs:
   using: "composite"
@@ -148,20 +179,30 @@ runs:
         echo "pants_bootstrap_cache_key=$PANTS_BOOTSTRAP_CACHE_KEY" >> $GITHUB_OUTPUT
         echo "pants_bootstrap_cache_dir=$PANTS_BOOTSTRAP_CACHE_DIR" >> $GITHUB_OUTPUT
 
-    - name: Cache Pants setup
-      id: cache-pants-setup
-      uses: actions/cache@v5
+    - name: Export cache metadata
+      id: cache_metadata
+      shell: bash
+      run: |
+        echo "setup_cache_path=${{ steps.pants_bootstrap_cache.outputs.pants_bootstrap_cache_dir }}" >> $GITHUB_OUTPUT
+        echo "setup_cache_key=pants-setup-${{ steps.pants_bootstrap_cache.outputs.pants_bootstrap_cache_key }}" >> $GITHUB_OUTPUT
+        echo "named_caches_path=${{ inputs.named-caches-location }}" >> $GITHUB_OUTPUT
+        echo "named_caches_key=pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ hashFiles('pants.toml') }}-${{ inputs.named-caches-hash }}" >> $GITHUB_OUTPUT
+        echo "lmdb_store_path=${{ inputs.lmdb-store-location }}" >> $GITHUB_OUTPUT
+        echo "lmdb_store_key=pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+    - name: Restore Pants setup cache
+      uses: actions/cache/restore@v5
       with:
         path: |
           ${{ steps.pants_bootstrap_cache.outputs.pants_bootstrap_cache_dir }}
-        key: pants-setup-${{ steps.pants_bootstrap_cache.outputs.pants_bootstrap_cache_key }}
+        key: ${{ steps.cache_metadata.outputs.setup_cache_key }}
 
-    - name: Cache Pants named caches
-      uses: actions/cache@v5
+    - name: Restore Pants named caches
       if: inputs.named-caches-hash != 'disable'
+      uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.named-caches-location }}
-        key: pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ hashFiles('pants.toml') }}-${{ inputs.named-caches-hash }}
+        key: ${{ steps.cache_metadata.outputs.named_caches_key }}
         restore-keys: |
           pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ hashFiles('pants.toml') }}-
           pants-named-caches-${{ runner.os }}-${{ inputs.gha-cache-key }}-
@@ -188,15 +229,14 @@ runs:
         GITHUB_ENTERPRISE_TOKEN: ${{ github.token }}
         GH_HOST: ${{ inputs.gh-host }}
 
-    - name: Cache Pants LMDB store
+    - name: Restore Pants LMDB store
       if: inputs.cache-lmdb-store == 'true'
-      uses: actions/cache@v5
-      id: cache-pants-lmdb-store
+      uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.lmdb-store-location }}
         # The commit SHA serves as a hash of all files in the repo.
         # A remote cache service integrates with Pants's fine-grained invalidation and avoids these problems.
-        key: pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ github.sha }}
+        key: ${{ steps.cache_metadata.outputs.lmdb_store_key }}
         restore-keys: |
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-${{ steps.pants_cache_commit.outputs.CACHECOMMIT }}
           pants-lmdb-store-${{ runner.os }}-${{ inputs.gha-cache-key }}-

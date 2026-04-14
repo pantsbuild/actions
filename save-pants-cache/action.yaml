@@ -1,0 +1,69 @@
+---
+name: Save Pants Caches
+description: |
+  Companion action to init-pants when using `cache-save-mode: explicit`.
+
+  Saves Pants caches using actions/cache/save, which runs as a regular step
+  rather than a post-step hook. When used with `if: always()`, this ensures
+  caches are saved even when the workflow is cancelled (e.g., by
+  cancel-in-progress: true in a concurrency group).
+
+  This action should be placed at the end of the job, after all Pants commands
+  have completed.
+
+inputs:
+  setup-cache-path:
+    description: Path to the Pants setup cache directory (from init-pants output)
+    required: true
+  setup-cache-key:
+    description: GHA cache key for the Pants setup cache (from init-pants output)
+    required: true
+  named-caches-path:
+    description: Path to the Pants named caches directory (from init-pants output)
+    required: true
+  named-caches-key:
+    description: GHA cache key for the Pants named caches (from init-pants output)
+    required: true
+  named-caches-hash:
+    description: |
+      The named caches hash value (from init-pants output). Pass this through
+      so the save can be skipped when set to "disable".
+    required: false
+    default: ''
+  lmdb-store-path:
+    description: Path to the Pants LMDB store directory (from init-pants output)
+    required: false
+    default: ''
+  lmdb-store-key:
+    description: GHA cache key for the Pants LMDB store (from init-pants output)
+    required: false
+    default: ''
+  cache-lmdb-store:
+    description: Whether the LMDB store cache is enabled (from init-pants output)
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    # GHA cache keys are immutable — save is a no-op when the exact key
+    # already exists, so it is always safe to attempt.
+    - name: Save Pants setup cache
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ inputs.setup-cache-path }}
+        key: ${{ inputs.setup-cache-key }}
+
+    - name: Save Pants named caches
+      if: inputs.named-caches-hash != 'disable' && inputs.named-caches-hash != ''
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ inputs.named-caches-path }}
+        key: ${{ inputs.named-caches-key }}
+
+    - name: Save Pants LMDB store
+      if: inputs.cache-lmdb-store == 'true'
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ inputs.lmdb-store-path }}
+        key: ${{ inputs.lmdb-store-key }}
