@@ -120,7 +120,9 @@ runs:
           if [[ -f ./get-pants.sh ]]; then
             ./get-pants.sh $VERSION_FLAG
           else
-            curl --proto '=https' --tlsv1.2 -fsSLo ${{ runner.temp }}/get-pants.sh \
+            curl --proto '=https' --tlsv1.2 \
+              --retry 3 --retry-delay 2 --retry-all-errors --create-dirs \
+              -fsSLo ${{ runner.temp }}/get-pants.sh \
               https://raw.githubusercontent.com/pantsbuild/setup/${{ inputs.setup-commit }}/get-pants.sh
             chmod +x ${{ runner.temp }}/get-pants.sh
             ${{ runner.temp }}/get-pants.sh $VERSION_FLAG
