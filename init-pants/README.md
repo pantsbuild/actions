@@ -23,7 +23,19 @@ If you need to ignore old caches, please change `gha-cache-key`.
 
 ## Output
 
-This action has no output.
+The following outputs are available for passing to the
+[`save-pants-cache`](../save-pants-cache) companion action:
+
+| Output | Description |
+|--------|-------------|
+| `setup-cache-path` | Path to the Pants setup cache directory |
+| `setup-cache-key` | GHA cache key for the Pants setup cache |
+| `named-caches-path` | Path to the Pants named caches directory |
+| `named-caches-key` | GHA cache key for the Pants named caches |
+| `lmdb-store-path` | Path to the Pants LMDB store directory |
+| `lmdb-store-key` | GHA cache key for the Pants LMDB store |
+| `cache-lmdb-store` | Whether the LMDB store cache is enabled |
+| `named-caches-hash` | The named caches hash value |
 
 ## Input
 
@@ -94,13 +106,41 @@ The environment variable should be available for the remainder of the workflow t
 
 ## Usage Example
 
-Here is an example of how to use this action in a workflow. Please note that you should check whether the `v10` tag is in fact the latest tagged release of these actions, and update accordingly if it is not to either a more recent tag or a known-good commit on `main` (but not `main` directly!).
+This action only restores caches. You must add `save-pants-cache` with
+`if: always()` at the end of your job to persist them. This ensures cache
+saves survive workflow cancellation (e.g., `cancel-in-progress: true`).
 
 ```yaml
       - name: Initialize Pants
-        uses: pantsbuild/actions/init-pants@v10
+        id: pants-init
+        uses: pantsbuild/actions/init-pants@v11
         with:
           # cache0 makes it easy to bust the cache if needed
           gha-cache-key: cache0-py${{ matrix.python_version }}
           named-caches-hash: ${{ hashFiles('lockfiles/*.json', '**/something-else.lock') }}
+
+      # ... your build/test steps ...
+
+      - name: Save Pants caches
+        if: always()
+        uses: pantsbuild/actions/save-pants-cache@v11
+        with:
+          setup-cache-path: ${{ steps.pants-init.outputs.setup-cache-path }}
+          setup-cache-key: ${{ steps.pants-init.outputs.setup-cache-key }}
+          named-caches-path: ${{ steps.pants-init.outputs.named-caches-path }}
+          named-caches-key: ${{ steps.pants-init.outputs.named-caches-key }}
+          named-caches-hash: ${{ steps.pants-init.outputs.named-caches-hash }}
+          lmdb-store-path: ${{ steps.pants-init.outputs.lmdb-store-path }}
+          lmdb-store-key: ${{ steps.pants-init.outputs.lmdb-store-key }}
+          cache-lmdb-store: ${{ steps.pants-init.outputs.cache-lmdb-store }}
 ```
+
+### Migration from previous versions
+
+Previously, `init-pants` used `actions/cache@v5` which saves caches via a
+post-step hook. Post-step hooks do not run on workflow cancellation, so
+workflows using `cancel-in-progress: true` would lose cache saves on every
+cancelled run — creating a cold-cache cycle.
+
+To migrate: add an `id` to your `init-pants` step and add the `save-pants-cache`
+step shown above at the end of your job. No other changes are needed.
